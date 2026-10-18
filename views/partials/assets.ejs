@@ -1,0 +1,51 @@
+<%- include('partials/header') %>
+
+<section class="card">
+  <h2 class="card-title">Add equipment</h2>
+  <form method="post" action="/assets" class="inline-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div><label for="n_name">Name</label><input id="n_name" name="name" maxlength="120" required></div>
+    <div><label for="n_tag">Asset tag</label><input id="n_tag" name="asset_tag" maxlength="40" required></div>
+    <div><label for="n_cat">Category</label><input id="n_cat" name="category" maxlength="60" placeholder="General"></div>
+    <div><label for="n_status">Status</label>
+      <select id="n_status" name="status"><option value="available">Available</option><option value="maintenance">Maintenance</option></select></div>
+    <button class="btn btn-primary">Add</button>
+  </form>
+</section>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Name</th><th>Asset Tag</th><th>Category</th><th>Status</th><th>Now</th><th>Actions</th></tr></thead>
+    <tbody>
+    <% if (!assets.length) { %><tr><td colspan="6" class="empty">No equipment yet.</td></tr><% } %>
+    <% assets.forEach(a => { %>
+      <%# Inputs sit in different cells but belong to ONE form through the form="" attribute %>
+      <tr>
+        <td><input form="edit<%= a.id %>" name="name" value="<%= a.name %>" maxlength="120" required aria-label="Name"></td>
+        <td><input form="edit<%= a.id %>" name="asset_tag" value="<%= a.asset_tag %>" maxlength="40" required aria-label="Asset tag"></td>
+        <td><input form="edit<%= a.id %>" name="category" value="<%= a.category %>" maxlength="60" aria-label="Category"></td>
+        <td>
+          <select form="edit<%= a.id %>" name="status" aria-label="Status">
+            <option value="available"   <%= a.status === 'available'   ? 'selected' : '' %>>Available</option>
+            <option value="maintenance" <%= a.status === 'maintenance' ? 'selected' : '' %>>Maintenance</option>
+          </select>
+        </td>
+        <td><span class="pill <%= a.in_use ? 'pill-checked_out' : 'pill-approved' %>"><%= a.in_use ? 'In use' : 'Free' %></span></td>
+        <td>
+          <div class="actions">
+            <form id="edit<%= a.id %>" method="post" action="/assets/<%= a.id %>">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-small btn-outline">Save</button>
+            </form>
+            <form method="post" action="/assets/<%= a.id %>/delete" data-confirm="Delete this asset?">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-small btn-danger">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('partials/footer') %>

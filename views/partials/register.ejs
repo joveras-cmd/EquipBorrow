@@ -1,0 +1,18 @@
+<%- include('partials/header') %>
+<section class="auth-card">
+  <h1>Create account</h1>
+  <form method="post" action="/register">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label for="full_name">Full name</label>
+    <input id="full_name" name="full_name" maxlength="120" required autofocus autocomplete="name">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" maxlength="160" required autocomplete="email">
+    <label for="password">Password (at least 8 characters)</label>
+    <input id="password" name="password" type="password" minlength="8" maxlength="72" required autocomplete="new-password">
+    <label for="confirm">Confirm password</label>
+    <input id="confirm" name="confirm" type="password" minlength="8" maxlength="72" required autocomplete="new-password">
+    <button class="btn btn-primary btn-block">Register</button>
+  </form>
+  <p class="muted center">Already registered? <a href="/login">Log in</a></p>
+</section>
+<%- include('partials/footer') %>

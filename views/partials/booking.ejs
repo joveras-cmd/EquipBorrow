@@ -1,0 +1,77 @@
+<%- include('partials/header') %>
+<div class="booking-grid">
+
+  <%# ---------- LEFT: calendar ---------- %>
+  <section class="card" aria-label="Booking calendar">
+    <div class="cal-toolbar">
+      <div class="cal-nav">
+        <a class="btn btn-small btn-outline" href="/booking?view=<%= cal.view %>&date=<%= cal.todayYmd %>">Today</a>
+        <a class="icon-btn" href="/booking?view=<%= cal.view %>&date=<%= cal.prevYmd %>" aria-label="Previous">‹</a>
+        <a class="icon-btn" href="/booking?view=<%= cal.view %>&date=<%= cal.nextYmd %>" aria-label="Next">›</a>
+      </div>
+      <h2 class="cal-title"><%= cal.title %></h2>
+      <div class="seg">
+        <a class="<%= cal.view === 'month' ? 'on' : '' %>" href="/booking?view=month&date=<%= cal.anchorYmd %>">Month</a>
+        <a class="<%= cal.view === 'week'  ? 'on' : '' %>" href="/booking?view=week&date=<%= cal.anchorYmd %>">Week</a>
+      </div>
+    </div>
+
+    <div class="cal-grid">
+      <% ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { %><div class="cal-dow"><%= d %></div><% }) %>
+      <% cal.days.forEach(day => { %>
+        <div class="cal-day <%= day.inMonth ? '' : 'muted' %> <%= day.isToday ? 'today' : '' %> <%= cal.view === 'week' ? 'tall' : '' %>"
+             data-date="<%= day.ymd %>" tabindex="0" title="Click to book this day">
+          <span class="cal-num"><%= day.num %></span>
+          <% day.events.slice(0, cal.view === 'week' ? 12 : 3).forEach(ev => { %>
+            <div class="cal-event ev-<%= ev.status %> <%= ev.mine ? 'mine' : '' %>"><%= ev.label %></div>
+          <% }) %>
+          <% if (cal.view === 'month' && day.events.length > 3) { %>
+            <div class="cal-more">+<%= day.events.length - 3 %> more</div>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+
+  <%# ---------- RIGHT: booking form ---------- %>
+  <section class="card">
+    <h2 class="card-title">Booking Form</h2>
+    <form method="post" action="/booking" id="booking-form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <label for="user_id">User</label>
+      <% if (user.role === 'admin') { %>
+        <select id="user_id" name="user_id" required>
+          <% userList.forEach(u => { %>
+            <option value="<%= u.id %>" <%= u.id === user.id ? 'selected' : '' %>><%= u.full_name %></option>
+          <% }) %>
+        </select>
+      <% } else { %>
+        <input id="user_name" value="<%= user.name %>" disabled>
+      <% } %>
+
+      <label for="asset_id">Asset</label>
+      <select id="asset_id" name="asset_id" required>
+        <option value="">Select an asset…</option>
+        <% assets.forEach(a => { %><option value="<%= a.id %>"><%= a.name %> - <%= a.asset_tag %></option><% }) %>
+      </select>
+
+      <label for="start">Start</label>
+      <input id="start" name="start" type="datetime-local" value="<%= defaults.start %>" required>
+
+      <label for="due">Return by</label>
+      <input id="due" name="due" type="datetime-local" value="<%= defaults.due %>">
+
+      <label class="check"><input type="checkbox" name="indefinite" id="indefinite"> Indefinite return</label>
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="3" maxlength="255" placeholder="Enter your notes…"></textarea>
+
+      <label class="check"><input type="checkbox" name="auto_checkout"> Auto check in/out</label>
+
+      <button class="btn btn-primary">Submit</button>
+      <% if (user.role !== 'admin') { %><p class="muted small">Your request will wait for admin approval.</p><% } %>
+    </form>
+  </section>
+</div>
+<%- include('partials/footer') %>

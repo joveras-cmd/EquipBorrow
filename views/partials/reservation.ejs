@@ -1,0 +1,102 @@
+<%- include('partials/header') %>
+
+<%# ---------- 1. The four coloured cards (click one to filter) ---------- %>
+<section class="stats" aria-label="Summary">
+  <a class="stat stat-green <%= filters.status === 'in_approval' ? 'is-active' : '' %>" href="/reservations?status=in_approval">
+    <span class="stat-label">In-approval</span><span class="stat-num"><%= counts.in_approval %></span><span class="stat-icon" aria-hidden="true">🕒</span>
+  </a>
+  <a class="stat stat-red <%= filters.status === 'declined' ? 'is-active' : '' %>" href="/reservations?status=declined">
+    <span class="stat-label">Declined</span><span class="stat-num"><%= counts.declined %></span><span class="stat-icon" aria-hidden="true">⚠</span>
+  </a>
+  <a class="stat stat-amber <%= filters.status === 'today' ? 'is-active' : '' %>" href="/reservations?status=today">
+    <span class="stat-label">Start Today</span><span class="stat-num"><%= counts.start_today %></span><span class="stat-icon" aria-hidden="true">⚠</span>
+  </a>
+  <a class="stat stat-amber <%= filters.status === 'overdue' ? 'is-active' : '' %>" href="/reservations?status=overdue">
+    <span class="stat-label">Overdue</span><span class="stat-num"><%= counts.overdue %></span><span class="stat-icon" aria-hidden="true">⚠</span>
+  </a>
+</section>
+
+<%# ---------- 2. Filters ---------- %>
+<form class="filters" method="get" action="/reservations" role="search">
+  <div class="filters-row">
+    <select name="status" aria-label="Status" data-autosubmit>
+      <option value="">All statuses</option>
+      <% [['in_approval','In-approval'],['approved','Approved'],['declined','Declined'],['checked_out','Checked out'],
+          ['returned','Returned'],['cancelled','Cancelled'],['today','Start today'],['overdue','Overdue']].forEach(o => { %>
+        <option value="<%= o[0] %>" <%= filters.status === o[0] ? 'selected' : '' %>><%= o[1] %></option>
+      <% }) %>
+    </select>
+    <label class="filter-by">Filtered by:
+      <select name="period" data-autosubmit>
+        <option value="all"   <%= filters.period === 'all'   ? 'selected' : '' %>>All Time</option>
+        <option value="today" <%= filters.period === 'today' ? 'selected' : '' %>>Today</option>
+        <option value="week"  <%= filters.period === 'week'  ? 'selected' : '' %>>This Week</option>
+        <option value="month" <%= filters.period === 'month' ? 'selected' : '' %>>This Month</option>
+      </select>
+    </label>
+  </div>
+  <div class="filters-row">
+    <input type="search" name="q" value="<%= filters.q %>" placeholder="Search asset, tag or name" maxlength="60" aria-label="Search">
+    <div class="toolbar">
+      <a class="icon-btn" href="<%= currentUrl %>" title="Refresh" aria-label="Refresh">⟳</a>
+      <button type="button" class="icon-btn" data-fullscreen title="Full screen" aria-label="Full screen">⛶</button>
+    </div>
+  </div>
+</form>
+
+<%# ---------- 3. The table ---------- %>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Name</th><th>Asset Tag</th><th>Status</th><th>Requested By</th><th>Start Date</th><th>Due Date</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+    <% if (!rows.length) { %>
+      <tr><td colspan="7" class="empty">No reservations found.</td></tr>
+    <% } %>
+    <% rows.forEach(r => {
+         const isAdmin = user.role === 'admin';
+         const canCancel = ['in_approval', 'approved'].includes(r.status);
+         const hasMenu = isAdmin || canCancel; %>
+      <tr>
+        <td><a class="link" href="/booking?date=<%= ymd(r.start_date) %>"><%= r.asset_name %></a></td>
+        <td><%= r.asset_tag %></td>
+        <td><span class="pill pill-<%= r.status %>"><%= statusLabel(r.status) %></span></td>
+        <td><span class="avatar" aria-hidden="true"><%= r.requested_by.charAt(0).toUpperCase() %></span> <%= r.requested_by %></td>
+        <td><%= fmtDateTime(r.start_date) %></td>
+        <td class="<%= r.is_overdue ? 'overdue' : '' %>"><%= fmtDateTime(r.due_date) %></td>
+        <td>
+          <div class="actions">
+            <% if (isAdmin && ['in_approval', 'approved'].includes(r.status)) { %>
+              <%- include('partials/action', { r, action: 'checkout', label: 'Checkout', cls: 'btn btn-outline btn-small' }) %>
+            <% } else if (isAdmin && r.status === 'checked_out') { %>
+              <%- include('partials/action', { r, action: 'return', label: 'Return', cls: 'btn btn-outline btn-small' }) %>
+            <% } %>
+
+            <% if (hasMenu) { %>
+            <div class="menu">
+              <button type="button" class="kebab" aria-haspopup="true" aria-expanded="false"
+                      aria-label="More actions for <%= r.asset_name %>">⋮</button>
+              <div class="menu-list" hidden>
+                <% if (isAdmin && r.status === 'in_approval') { %>
+                  <%- include('partials/action', { r, action: 'approve', label: 'Approve', cls: 'menu-item' }) %>
+                  <%- include('partials/action', { r, action: 'decline', label: 'Decline', cls: 'menu-item' }) %>
+                <% } %>
+                <% if (canCancel) { %>
+                  <%- include('partials/action', { r, action: 'cancel', label: 'Cancel', cls: 'menu-item' }) %>
+                <% } %>
+                <% if (isAdmin) { %>
+                  <%- include('partials/action', { r, action: 'delete', label: 'Delete', cls: 'menu-item danger' }) %>
+                <% } %>
+              </div>
+            </div>
+            <% } %>
+          </div>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/footer') %>
