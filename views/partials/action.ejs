@@ -1,0 +1,7 @@
+<%# One small POST form = one button. Needs: r (reservation), action, label, cls %>
+<form method="post" action="/reservations/<%= r.id %>/<%= action %>"
+      <% if (action === 'delete' || action === 'decline') { %>data-confirm="<%= label %> this reservation?"<% } %>>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <input type="hidden" name="back" value="<%= currentUrl %>">
+  <button class="<%= cls %>"><%= label %></button>
+</form>

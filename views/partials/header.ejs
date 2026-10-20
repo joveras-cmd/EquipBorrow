@@ -6,38 +6,35 @@
   <title><%= title %> · Equipment Borrowing</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-    <>
-    <a class="skip" href="#main">Skip to content</a>
+<body>
+<a class="skip" href="#main">Skip to content</a>
 
-        if (user) { 
-            <header class="topbar">
-            <h1 class="page-title"> title </h1>
-            <nav class="topbar-nav" aria-label="Main">
-                <a href="/reservations" class="<%= currentPath.startsWith('/reservations') ? 'active' : '' %>">Reservations</a>
-                <a href="/booking"      class="<%= currentPath.startsWith('/booking') ? 'active' : '' %>">Booking</a>
-                if (user.role === 'admin') { 
-                    <a href="/assets"     class="<%= currentPath.startsWith('/assets') ? 'active' : '' %>">Assets</a>
-                }
-            </nav>
-            <div class="topbar-right">
-                if (user.role === 'admin') {
-                <a class="bell" href="/reservations?status=in_approval" aria-label="<%= pendingCount %> reservations waiting for approval">
-                    🔔 if (pendingCount  0) { <span class="badge"> pendingCount </span> }
-                </a>
-                }
-                <span class="user-chip"> user.name  <small> user.role</small></span>
-                <form method="post" action="/logout">
-                <input type="hidden" name="_csrf" value=" csrfToken "></input>
-                <button class="btn btn-small btn-ghost">Log out</button>
-                </form>
-            </div>
-        }
-</header> 
+<% if (user) { %>
+<header class="topbar">
+  <h1 class="page-title"><%= title %></h1>
+  <nav class="topbar-nav" aria-label="Main">
+    <a href="/reservations" class="<%= currentPath.startsWith('/reservations') ? 'active' : '' %>">Reservations</a>
+    <a href="/booking"      class="<%= currentPath.startsWith('/booking') ? 'active' : '' %>">Booking</a>
+    <% if (user.role === 'admin') { %>
+      <a href="/assets"     class="<%= currentPath.startsWith('/assets') ? 'active' : '' %>">Assets</a>
+    <% } %>
+  </nav>
+  <div class="topbar-right">
+    <% if (user.role === 'admin') { %>
+      <a class="bell" href="/reservations?status=in_approval" aria-label="<%= pendingCount %> reservations waiting for approval">
+        🔔<% if (pendingCount > 0) { %><span class="badge"><%= pendingCount %></span><% } %>
+      </a>
+    <% } %>
+    <span class="user-chip"><%= user.name %> <small><%= user.role %></small></span>
+    <form method="post" action="/logout">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="btn btn-small btn-ghost">Log out</button>
+    </form>
+  </div>
+</header>
+<% } %>
 
-
-<main id="main" class=" user ? 'container' : 'auth-wrap'">
-    if (flash) { 
-        <div class="flash flash-  flash.type " role="status">flash.text </div>
-    } 
-</main>
-
+<main id="main" class="<%= user ? 'container' : 'auth-wrap' %>">
+<% if (flash) { %>
+  <div class="flash flash-<%= flash.type %>" role="status"><%= flash.text %></div>
+<% } %>
